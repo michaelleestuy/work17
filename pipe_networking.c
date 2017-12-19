@@ -15,9 +15,6 @@ int server_setup() {
   mkfifo("HOLA", 0600);
   int pipeup = open("HOLA", O_RDONLY, 0);
 
-
-  
-  
   return pipeup;
 }
 
@@ -34,10 +31,10 @@ int server_connect(int from_client) {
   char red[100];
   read(from_client, red, 100);
   int pipedown = open(red, O_WRONLY, 0);
-  write(pipedown, "CONFIRMATION", 100);
-  read(from_client, red, 100);
-  //if(!strcmp(red, "CONFIRMATION")){
-  printf("subserver %d: handshake complete\n", getpid());
+  write(pipedown, red, 100);
+  if (read(from_client, red, 100))
+    //if(!strcmp(red, "CONFIRMATION")){
+    printf("subserver %d: handshake complete\n", getpid());
   
   //}
   
@@ -114,6 +111,7 @@ int client_handshake(int *to_server) {
   printf("[client] handshake: received [%s]\n", buffer);
 
   //remove pp
+  printf("buffer: [%s]\n",buffer);
   remove(buffer);
   printf("[client] handshake: removed pp\n");
 

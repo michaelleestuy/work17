@@ -2,7 +2,7 @@
 #include <signal.h>
 
 void process(char *s);
-void subserver(int from_client, int);
+void subserver(int from_client);
 
 static void sighandler(int signo) {
   if (signo == SIGINT) {
@@ -12,14 +12,16 @@ static void sighandler(int signo) {
 }
 
 int main() {
+  signal(SIGINT,sighandler);
+  
   int from_client;
   int to_client;
   while(1){
     from_client = server_setup();
     printf("server forking\n");
     if(!fork()){
-      to_client = server_connect(from_client);
-      subserver(from_client, to_client);
+      //to_client = server_connect(from_client);
+      subserver(from_client);
       
     }else{
       remove("HOLA");
@@ -30,18 +32,34 @@ int main() {
   
 }
 
-void subserver(int from_client, int to_client) {
-  char red[100];
+void subserver(int from_client) {
+  int to_client=server_connect(from_client);
+  //int to_client;
+  char buffer[BUFFER_SIZE];
+  //int i=0;
+  /*while (i<100) {
+    red[i]=0;
+    i++;
+    }*/
 
-  while(read(from_client, red, 100)){
-    process(red);
-    write(to_client, red, 100);
+  while(read(from_client,buffer,BUFFER_SIZE)){
+    printf("subserver %d: received [%s]\n",getpid(),buffer);
+    process(buffer);
+    write(to_client, buffer, sizeof(buffer));
   }
 
   
 }
 
 void process(char * s) {
-  s[0] = '!';
-  
+  int i=0;
+  while (s[i]) {
+
+    if ( (s[i]>='a' && s[i]<='m') || (s[i]>='A' && s[i]<='M'))
+      s[i]+=13;
+    else if ( (s[i]>='n' && s[i]<='z') || (s[i]>='N'&&s[i]<='Z'))
+      s[i]-=13;
+    i++;
+
+  }
 }
